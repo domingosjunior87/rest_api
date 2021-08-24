@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Repository\UsuarioRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -14,11 +16,8 @@ class UsuarioController extends AbstractController
     /**
      * @Route("/", name="_get_all", methods={"GET"})
      */
-    public function index(): Response
+    public function index(UsuarioRepository $usuarioRepository): JsonResponse
     {
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/UsuarioController.php',
-        ]);
+        return $this->json($usuarioRepository->findAll());
     }
 }
