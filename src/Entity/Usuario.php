@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\UsuarioRepository;
 use Doctrine\ORM\Mapping as ORM;
+use InvalidArgumentException;
 use JsonSerializable;
 
 /**
@@ -72,13 +73,12 @@ class Usuario implements JsonSerializable
         return $this;
     }
 
-//    public function getSenha(): ?string
-//    {
-//        return $this->senha;
-//    }
-
-    public function setSenha(string $senha): self
+    public function setSenha(string $senha, string $confirmarSenha): self
     {
+        if ($senha !== $confirmarSenha) {
+            throw new InvalidArgumentException('A senha deve ser igual a confirmação de senha');
+        }
+
         $this->senha = $senha;
 
         return $this;
