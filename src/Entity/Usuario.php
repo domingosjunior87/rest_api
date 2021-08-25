@@ -6,6 +6,8 @@ use App\Repository\UsuarioRepository;
 use Doctrine\ORM\Mapping as ORM;
 use InvalidArgumentException;
 use JsonSerializable;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * @ORM\Entity(repositoryClass=UsuarioRepository::class)
@@ -43,6 +45,13 @@ class Usuario implements JsonSerializable
      * @ORM\Column(type="datetime")
      */
     private $updated_at;
+
+    public static function loadValidatorMetadata(ClassMetadata $metadata)
+    {
+        $metadata->addPropertyConstraint('email', new Assert\Email([
+            'message' => 'O email {{ value }} não é um email válido.',
+        ]));
+    }
 
     public function getId(): ?int
     {
