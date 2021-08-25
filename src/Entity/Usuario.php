@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use JsonSerializable;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass=UsuarioRepository::class)
@@ -48,6 +49,11 @@ class Usuario implements JsonSerializable
 
     public static function loadValidatorMetadata(ClassMetadata $metadata)
     {
+        $metadata->addConstraint(new UniqueEntity([
+            'fields' => 'email',
+            'message' => 'Este email já está cadastrado.',
+        ]));
+
         $metadata->addPropertyConstraint('email', new Assert\Email([
             'message' => 'O email {{ value }} não é um email válido.',
         ]));

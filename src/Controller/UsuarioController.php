@@ -31,17 +31,17 @@ class UsuarioController extends Controller
         $dados = $request->request->all();
 
         $usuario = new Usuario();
-        $usuario->setNome($dados['nome']);
-        $usuario->setEmail($dados['email']);
+        $usuario
+            ->setNome($dados['nome'])
+            ->setEmail($dados['email'])
+            ->setCreatedAt(new \DateTime('now', new \DateTimeZone('America/Manaus')))
+            ->setUpdatedAt(new \DateTime('now', new \DateTimeZone('America/Manaus')));
 
         try {
             $usuario->setSenha($dados['senha'], $dados['confirmar_senha']);
         } catch (InvalidArgumentException $ex) {
             return $this->json(['mensagem' => $ex->getMessage()], 400);
         }
-
-        $usuario->setCreatedAt(new \DateTime('now', new \DateTimeZone('America/Manaus')));
-        $usuario->setUpdatedAt(new \DateTime('now', new \DateTimeZone('America/Manaus')));
 
         $erros = $validator->validate($usuario);
         if (count($erros) > 0) {
@@ -58,13 +58,21 @@ class UsuarioController extends Controller
     /**
      * @Route("/{id}", name="_update", methods={"PUT"})
      */
-    public function update(Usuario $usuario, Request $request, ValidatorInterface $validator) : JsonResponse
+    public function update(int $id, Request $request, ValidatorInterface $validator) : JsonResponse
     {
+        $entityManager = $this->getDoctrine()->getManager();
+        $usuario = $entityManager->getRepository(Usuario::class)->find($id);
+
+        if (!$usuario) {
+            return $this->json(['mensagem' => 'Usuário não encontrado'], 404);
+        }
+
         $dados = $request->request->all();
 
-        $usuario->setNome($dados['nome']);
-        $usuario->setEmail($dados['email']);
-        $usuario->setUpdatedAt(new \DateTime('now', new \DateTimeZone('America/Manaus')));
+        $usuario
+            ->setNome($dados['nome'])
+            ->setEmail($dados['email'])
+            ->setUpdatedAt(new \DateTime('now', new \DateTimeZone('America/Manaus')));
 
         $erros = $validator->validate($usuario);
         if (count($erros) > 0) {
@@ -80,8 +88,15 @@ class UsuarioController extends Controller
     /**
      * @Route("/{id}", name="_delete", methods={"DELETE"})
      */
-    public function delete(Usuario $usuario) : JsonResponse
+    public function delete(int $id) : JsonResponse
     {
+        $entityManager = $this->getDoctrine()->getManager();
+        $usuario = $entityManager->getRepository(Usuario::class)->find($id);
+
+        if (!$usuario) {
+            return $this->json(['mensagem' => 'Usuário não encontrado'], 404);
+        }
+
         $doctrine = $this->getDoctrine()->getManager();
         $doctrine->remove($usuario);
         $doctrine->flush();
