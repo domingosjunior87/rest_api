@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
  * @Route("/usuario", name="usuario")
@@ -26,22 +27,20 @@ class UsuarioController extends Controller
     /**
      * @Route("/", name="_create", methods={"POST"})
      */
-    public function create(Request $request, ValidatorInterface $validator) : JsonResponse
-    {
+    public function create(
+        Request $request,
+        ValidatorInterface $validator,
+        UserPasswordEncoderInterface $encoder
+    ) : JsonResponse {
         $dados = $request->request->all();
 
         $usuario = new Usuario();
         $usuario
             ->setNome($dados['nome'])
+            ->setSenha($encoder->encodePassword($usuario, $dados['senha']))
             ->setEmail($dados['email'])
             ->setCreatedAt(new \DateTime('now', new \DateTimeZone('America/Manaus')))
             ->setUpdatedAt(new \DateTime('now', new \DateTimeZone('America/Manaus')));
-
-        try {
-            $usuario->setSenha($dados['senha'], $dados['confirmar_senha']);
-        } catch (InvalidArgumentException $ex) {
-            return $this->json(['mensagem' => $ex->getMessage()], 400);
-        }
 
         $erros = $validator->validate($usuario);
         if (count($erros) > 0) {
