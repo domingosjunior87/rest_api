@@ -2,14 +2,12 @@
 
 namespace App\Controller;
 
-use App\Entity\Usuario;
+use App\Exception\DataValidationException;
 use App\Repository\UsuarioRepository;
-use InvalidArgumentException;
+use Doctrine\ORM\EntityNotFoundException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
  * @Route("/usuario", name="usuario")
@@ -29,76 +27,55 @@ class UsuarioController extends Controller
      */
     public function create(
         Request $request,
-        ValidatorInterface $validator,
-        UserPasswordEncoderInterface $encoder
+        UsuarioRepository $usuarioRepository
     ) : JsonResponse {
         $dados = $request->request->all();
 
-        $usuario = new Usuario();
-        $usuario
-            ->setNome($dados['nome'])
-            ->setSenha($encoder->encodePassword($usuario, $dados['senha']))
-            ->setEmail($dados['email'])
-            ->setCreatedAt(new \DateTime('now', new \DateTimeZone('America/Manaus')))
-            ->setUpdatedAt(new \DateTime('now', new \DateTimeZone('America/Manaus')));
-
-        $erros = $validator->validate($usuario);
-        if (count($erros) > 0) {
-            return $this->returnJsonResponseError($erros);
+        try {
+            $usuarioRepository->cadastrar(
+                $dados['nome'],
+                $dados['senha'],
+                $dados['email']
+            );
+        } catch (DataValidationException $e) {
+            return $this->json(['mensagem' => $e->getMessage()], 400);
         }
 
-        $doctrine = $this->getDoctrine()->getManager();
-        $doctrine->persist($usuario);
-        $doctrine->flush();
-
-        return $this->json(['usuario' => $usuario]);
+        return $this->json(['cadastrado' => true]);
     }
 
     /**
      * @Route("/{id}", name="_update", methods={"PUT"})
      */
-    public function update(int $id, Request $request, ValidatorInterface $validator) : JsonResponse
+    public function update(int $id, Request $request, UsuarioRepository $usuarioRepository) : JsonResponse
     {
-        $entityManager = $this->getDoctrine()->getManager();
-        $usuario = $entityManager->getRepository(Usuario::class)->find($id);
-
-        if (!$usuario) {
-            return $this->json(['mensagem' => 'Usuário não encontrado'], 404);
-        }
-
         $dados = $request->request->all();
 
-        $usuario
-            ->setNome($dados['nome'])
-            ->setEmail($dados['email'])
-            ->setUpdatedAt(new \DateTime('now', new \DateTimeZone('America/Manaus')));
-
-        $erros = $validator->validate($usuario);
-        if (count($erros) > 0) {
-            return $this->returnJsonResponseError($erros);
+        try {
+            $usuarioRepository->atualizar(
+                $id,
+                $dados['nome'],
+                $dados['email']
+            );
+        } catch (DataValidationException $e) {
+            return $this->json(['mensagem' => $e->getMessage()], 400);
+        } catch (EntityNotFoundException $e) {
+            return $this->json(['mensagem' => $e->getMessage()], 404);
         }
 
-        $doctrine = $this->getDoctrine()->getManager();
-        $doctrine->flush();
-
-        return $this->json($usuario);
+        return $this->json(['atualizado' => true]);
     }
 
     /**
      * @Route("/{id}", name="_delete", methods={"DELETE"})
      */
-    public function delete(int $id) : JsonResponse
+    public function delete(int $id, UsuarioRepository $usuarioRepository) : JsonResponse
     {
-        $entityManager = $this->getDoctrine()->getManager();
-        $usuario = $entityManager->getRepository(Usuario::class)->find($id);
-
-        if (!$usuario) {
-            return $this->json(['mensagem' => 'Usuário não encontrado'], 404);
+        try {
+            $usuarioRepository->excluir($id);
+        } catch (EntityNotFoundException $e) {
+            return $this->json(['mensagem' => $e->getMessage()], 404);
         }
-
-        $doctrine = $this->getDoctrine()->getManager();
-        $doctrine->remove($usuario);
-        $doctrine->flush();
 
         return $this->json(['removed' => true]);
     }
