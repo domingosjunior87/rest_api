@@ -6,7 +6,6 @@ use App\Repository\UsuarioRepository;
 use Firebase\JWT\JWT;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
@@ -29,10 +28,13 @@ class AuthController extends AbstractController
 
         $payload = [
             'usuario' => $usuario->getUsername(),
-            'exp'  => (new \DateTime())->modify('+5 minutes')->getTimestamp(),
+            'email' => $usuario->getEmail(),
+            'exp'  => (new \DateTime())->modify('+5 minutes')->getTimestamp()
         ];
 
         $jwt = JWT::encode($payload, $this->getParameter('jwt_secret'));
+
+        // TODO Salvar token no MongoDB
 
         return $this->json(['token' => $jwt]);
     }
