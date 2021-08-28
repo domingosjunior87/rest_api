@@ -2,7 +2,9 @@
 namespace App\Security;
 
 use App\Entity\Usuario;
+use App\Repository\ApiTokenRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityNotFoundException;
 use Firebase\JWT\ExpiredException;
 use Firebase\JWT\JWT;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
@@ -27,17 +29,24 @@ class JwtAuthenticator extends AbstractGuardAuthenticator
      */
     private $params;
 
-    public function __construct(EntityManagerInterface $entityManager, ContainerBagInterface $params)
-    {
+    /**
+     * @var ApiTokenRepository
+     */
+    private $apiTokenRepository;
+
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        ContainerBagInterface $params,
+        ApiTokenRepository $apiTokenRepository
+    ) {
         $this->entityManager = $entityManager;
         $this->params = $params;
+        $this->apiTokenRepository = $apiTokenRepository;
     }
 
     public function start(Request $request, AuthenticationException $authException = null) : Response
     {
-        var_dump('start'); exit;
-        $data = ['message' => 'Authentication Required'];
-        return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
+        return new JsonResponse(['message' => 'Necessário efetuar o login'], Response::HTTP_UNAUTHORIZED);
     }
 
     public function supports(Request $request) : bool
@@ -57,8 +66,10 @@ class JwtAuthenticator extends AbstractGuardAuthenticator
         return str_replace('Bearer ', '', $token);
     }
 
-    public function getUser($credentials, UserProviderInterface $userProvider) : UserInterface
-    {
+    public function getUser(
+        $credentials,
+        UserProviderInterface $userProvider
+    ) : UserInterface {
         try {
             $jwt = (array) JWT::decode(
                 $credentials,
@@ -71,6 +82,11 @@ class JwtAuthenticator extends AbstractGuardAuthenticator
                     'email' => $jwt['email'],
                 ]);
         } catch (ExpiredException $exception) {
+            try {
+                $this->apiTokenRepository->removerToken($credentials);
+            } catch (EntityNotFoundException $e) {
+            }
+
             throw new AuthenticationException('Efetuar o login');
         } catch (\Exception $exception) {
             throw new AuthenticationException($exception->getMessage());
@@ -79,8 +95,21 @@ class JwtAuthenticator extends AbstractGuardAuthenticator
 
     public function checkCredentials($credentials, UserInterface $user) : bool
     {
-        // TODO Verificar se o token informado é o atual desse usuário, no mongodb
-        return true;
+        $apiToken = $this->apiTokenRepository->findOneBy([
+            'usuario_id' => $user->getId(),
+            'token' => $credentials
+        ]);
+
+        if ($apiToken !== null) {
+            return true;
+        }
+
+        try {
+            $this->apiTokenRepository->removerToken($credentials);
+        } catch (EntityNotFoundException $e) {
+        }
+
+        throw new AuthenticationException('Token inválido');
     }
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception) : ?Response
@@ -93,9 +122,6 @@ class JwtAuthenticator extends AbstractGuardAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $providerKey) : ?Response
     {
-//        var_dump($token);
-//        var_dump($providerKey);
-//        exit;
         return null;
     }
 

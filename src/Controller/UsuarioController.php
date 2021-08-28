@@ -8,11 +8,12 @@ use Doctrine\ORM\EntityNotFoundException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 /**
  * @Route("/usuario", name="usuario")
  */
-class UsuarioController extends Controller
+class UsuarioController extends AbstractController
 {
     /**
      * @Route("/", name="_get_all", methods={"GET"})

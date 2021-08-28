@@ -149,7 +149,7 @@ class Usuario implements JsonSerializable, UserInterface
 
     public function eraseCredentials()
     {
-        // TODO: Implement eraseCredentials() method.
+        return null;
     }
 
     public function getUsername(): ?string
