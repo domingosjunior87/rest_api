@@ -78,8 +78,7 @@ class AuthController extends AbstractController
         Request $request,
         MailerInterface $mailer,
         UsuarioRepository $usuarioRepository,
-        RecuperarSenhaRepository $recuperarSenhaRepository,
-        UserPasswordEncoderInterface $encoder
+        RecuperarSenhaRepository $recuperarSenhaRepository
     ): JsonResponse {
         $dados = $request->request->all();
 
@@ -92,8 +91,6 @@ class AuthController extends AbstractController
         if ($usuario === null) {
             return $this->json(['mensagem' => 'Email não cadastrado'], 404);
         }
-
-        $momento = (new \DateTime('now', new \DateTimeZone('America/Manaus')))->format('d/m/Y H:i:s');
 
         $destinatario = sprintf('%s <%s>', $usuario->getNome(), $usuario->getEmail());
         $destinatario = Address::create($destinatario);
@@ -110,7 +107,7 @@ class AuthController extends AbstractController
         $email = (new Email())
             ->from('domingosjunior87@gmail.com')
             ->to($destinatario)
-            ->subject('Recuperação de senha ' . $momento)
+            ->subject('Recuperação de senha')
             ->text(implode(' ', $mensagem))
             ->html('<p>' . implode('</p><p>', $mensagem) . '</p>');
 
