@@ -1,0 +1,8 @@
+framework:
+    messenger:
+        transports:
+            # https://symfony.com/doc/current/messenger.html#transport-configuration
+             async: '%env(MESSENGER_TRANSPORT_DSN)%'
+
+        routing:
+            'Symfony\Component\Mailer\Messenger\SendEmailMessage': async

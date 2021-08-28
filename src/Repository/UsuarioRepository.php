@@ -104,6 +104,29 @@ class UsuarioRepository extends ServiceEntityRepository
     }
 
     /**
+     * @throws DataValidationException
+     */
+    public function atualizarSenha(
+        Usuario $usuario,
+        string $senha
+    ) : bool {
+        $usuario
+            ->setSenha($this->encoder->encodePassword($usuario, $senha))
+            ->setUpdatedAt(new DateTime('now', new DateTimeZone('America/Manaus')));
+
+        $erros = $this->validator->validate($usuario);
+
+        if (count($erros) > 0) {
+            throw new DataValidationException($erros);
+        }
+
+        $doctrine = $this->getEntityManager();
+        $doctrine->flush();
+
+        return true;
+    }
+
+    /**
      * @throws EntityNotFoundException
      */
     public function excluir(int $id) : bool
