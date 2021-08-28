@@ -24,25 +24,12 @@ class UsuarioController extends AbstractController
     }
 
     /**
-     * @Route("/", name="_create", methods={"POST"})
+     * @Route("/profile", name="_profile", methods={"GET"})
      */
-    public function create(
-        Request $request,
-        UsuarioRepository $usuarioRepository
-    ) : JsonResponse {
-        $dados = $request->request->all();
-
-        try {
-            $usuarioRepository->cadastrar(
-                $dados['nome'],
-                $dados['senha'],
-                $dados['email']
-            );
-        } catch (DataValidationException $e) {
-            return $this->json(['mensagem' => $e->getMessage()], 400);
-        }
-
-        return $this->json(['cadastrado' => true]);
+    public function profile() : JsonResponse
+    {
+        $usuario = $this->getUser();
+        return $this->json($usuario);
     }
 
     /**
