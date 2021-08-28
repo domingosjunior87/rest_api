@@ -1,9 +1,9 @@
 <?php
-
 namespace App\Controller;
 
 use App\Exception\DataValidationException;
 use App\Repository\ApiTokenRepository;
+use App\Repository\RecuperarSenhaRepository;
 use App\Repository\UsuarioRepository;
 use Firebase\JWT\JWT;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -11,6 +11,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Address;
 
 class AuthController extends AbstractController
 {
@@ -66,5 +69,106 @@ class AuthController extends AbstractController
         }
 
         return $this->json(['cadastrado' => true]);
+    }
+
+    /**
+     * @Route("/recuperar_senha", name="_recuperar_senha", methods={"POST"})
+     */
+    public function recuperarSenha(
+        Request $request,
+        MailerInterface $mailer,
+        UsuarioRepository $usuarioRepository,
+        RecuperarSenhaRepository $recuperarSenhaRepository,
+        UserPasswordEncoderInterface $encoder
+    ): JsonResponse {
+        $dados = $request->request->all();
+
+        if (!isset($dados['email'])) {
+            return $this->json(['mensagem' => 'Informe o email'], 400);
+        }
+
+        $usuario = $usuarioRepository->findOneBy(['email' => $dados['email']]);
+
+        if ($usuario === null) {
+            return $this->json(['mensagem' => 'Email não cadastrado'], 404);
+        }
+
+        $momento = (new \DateTime('now', new \DateTimeZone('America/Manaus')))->format('d/m/Y H:i:s');
+
+        $destinatario = sprintf('%s <%s>', $usuario->getNome(), $usuario->getEmail());
+        $destinatario = Address::create($destinatario);
+
+        $codigo = mt_rand(111111, 999999);
+
+        $mensagem = [
+            'Para recuperar sua senha, informe o seu e-mail e o código a seguir, em menos de uma hora:',
+            $codigo
+        ];
+
+        $recuperarSenhaRepository->salvar($codigo, $usuario->getEmail());
+
+        $email = (new Email())
+            ->from('domingosjunior87@gmail.com')
+            ->to($destinatario)
+            ->subject('Recuperação de senha ' . $momento)
+            ->text(implode(' ', $mensagem))
+            ->html('<p>' . implode('</p><p>', $mensagem) . '</p>');
+
+        $mailer->send($email);
+
+        return $this->json(['mensagem' => 'email enviado']);
+    }
+
+    /**
+     * @Route("/nova_senha", name="_nova_senha", methods={"POST"})
+     */
+    public function alterarSenha(
+        Request $request,
+        UsuarioRepository $usuarioRepository,
+        RecuperarSenhaRepository $recuperarSenhaRepository
+    ): JsonResponse {
+        $dados = $request->request->all();
+
+        $camposEsperados = [
+            'email',
+            'codigo',
+            'senha'
+        ];
+
+        foreach ($camposEsperados as $campo) {
+            if (!isset($dados[$campo])) {
+                return $this->json(['mensagem' => 'Informe o campo ' . $campo], 400);
+            }
+        }
+
+        $recuperarSenha = $recuperarSenhaRepository->findOneBy([
+            'email' => $dados['email'],
+            'codigo' => $dados['codigo']
+        ]);
+
+        if ($recuperarSenha === null) {
+            return $this->json(['mensagem' => 'Email e código não correspondem'], 404);
+        }
+
+        $codigoValido = $recuperarSenha->codigoValido();
+        $recuperarSenhaRepository->excluir($recuperarSenha);
+
+        if (!$codigoValido) {
+            return $this->json(['mensagem' => 'Código expirou, solicite um novo'], 401);
+        }
+
+        $usuario = $usuarioRepository->findOneBy(['email' => $dados['email']]);
+
+        if ($usuario === null) {
+            return $this->json(['mensagem' => 'Usuário não encontrado'], 404);
+        }
+
+        try {
+            $usuarioRepository->atualizarSenha($usuario, $dados['senha']);
+        } catch (DataValidationException $e) {
+            return $this->json(['mensagem' => $e->getMessage()], 400);
+        }
+
+        return $this->json(['mensagem' => 'Senha alterada com sucesso']);
     }
 }

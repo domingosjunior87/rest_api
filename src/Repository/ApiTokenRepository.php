@@ -22,11 +22,11 @@ class ApiTokenRepository extends ServiceDocumentRepository
         } catch (EntityNotFoundException $e) {
         }
 
-        $product = new ApiToken();
-        $product->setUsuarioId($usuarioId);
-        $product->setToken($token);
+        $apiToken = new ApiToken();
+        $apiToken->setUsuarioId($usuarioId);
+        $apiToken->setToken($token);
 
-        $this->getDocumentManager()->persist($product);
+        $this->getDocumentManager()->persist($apiToken);
         $this->getDocumentManager()->flush();
 
         return true;
