@@ -1,0 +1,273 @@
+{
+	"info": {
+		"_postman_id": "7b99d0ae-d524-45df-a5c5-1b3303f313d2",
+		"name": "SymfonyPromobit",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "create usuario",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "nome",
+							"value": "Domingos Coelho",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "domingos@example.com",
+							"type": "text"
+						},
+						{
+							"key": "senha",
+							"value": "123456",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost/symfony/rest_api/public/create_user",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"symfony",
+						"rest_api",
+						"public",
+						"create_user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "email",
+							"value": "domingos@example.com",
+							"type": "text"
+						},
+						{
+							"key": "senha",
+							"value": "123456",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost/symfony/rest_api/public/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"symfony",
+						"rest_api",
+						"public",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "profile",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c3VhcmlvIjoiU3VlbGxlbSBDb2VsaG8gTWVsbyIsImVtYWlsIjoic3VlbGxlbTJAZXhhbXBsZS5jb20iLCJleHAiOjE2MzAxMjI4NTF9.Y5Nf58VRsgtz3PQt7JXA8Zi1kh_7lzwmIbBQbIhXiVs",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost/symfony/rest_api/public/usuario/profile",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"symfony",
+						"rest_api",
+						"public",
+						"usuario",
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "listar usuários",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c3VhcmlvIjoiU3VlbGxlbSBDb2VsaG8gTWVsbyIsImVtYWlsIjoic3VlbGxlbTJAZXhhbXBsZS5jb20iLCJleHAiOjE2MzAxMjI4NTF9.Y5Nf58VRsgtz3PQt7JXA8Zi1kh_7lzwmIbBQbIhXiVs",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost/symfony/rest_api/public/usuario/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"symfony",
+						"rest_api",
+						"public",
+						"usuario",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "atualizar usuário",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "nome",
+							"value": "Domingos Manoel",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "domingos1@example.com",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost/symfony/rest_api/public/usuario/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"symfony",
+						"rest_api",
+						"public",
+						"usuario",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete usuário",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/symfony/rest_api/public/usuario/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"symfony",
+						"rest_api",
+						"public",
+						"usuario",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "recuperar senha",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "email",
+							"value": "domingos@example.com",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost/symfony/rest_api/public/recuperar_senha",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"symfony",
+						"rest_api",
+						"public",
+						"recuperar_senha"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "alterar senha",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "email",
+							"value": "domingos@example.com",
+							"type": "text"
+						},
+						{
+							"key": "codigo",
+							"value": "598237",
+							"type": "text"
+						},
+						{
+							"key": "senha",
+							"value": "654321",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost/symfony/rest_api/public/nova_senha",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"symfony",
+						"rest_api",
+						"public",
+						"nova_senha"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
