@@ -3,8 +3,14 @@
 namespace App\Repository;
 
 use App\Entity\Usuario;
+use App\Exception\DataValidationException;
+use DateTime;
+use DateTimeZone;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityNotFoundException;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * @method Usuario|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,37 +20,104 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class UsuarioRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    /**
+     * @var ValidatorInterface
+     */
+    protected $validator;
+
+    /**
+     * @var UserPasswordEncoderInterface
+     */
+    protected $encoder;
+
+    public function __construct(
+        ManagerRegistry $registry,
+        UserPasswordEncoderInterface $encoder,
+        ValidatorInterface $validator
+    ) {
+        $this->validator = $validator;
+        $this->encoder = $encoder;
+
         parent::__construct($registry, Usuario::class);
     }
 
-    // /**
-    //  * @return Usuario[] Returns an array of Usuario objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('u')
-            ->andWhere('u.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('u.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+    /**
+     * @throws DataValidationException
+     */
+    public function cadastrar(
+        string $nome,
+        string $senha,
+        string $email
+    ) : bool {
+        $usuario = new Usuario();
 
-    /*
-    public function findOneBySomeField($value): ?Usuario
-    {
-        return $this->createQueryBuilder('u')
-            ->andWhere('u.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        $usuario
+            ->setNome($nome)
+            ->setSenha($this->encoder->encodePassword($usuario, $senha))
+            ->setEmail($email)
+            ->setCreatedAt(new DateTime('now', new DateTimeZone('America/Manaus')))
+            ->setUpdatedAt(new DateTime('now', new DateTimeZone('America/Manaus')));
+
+        $erros = $this->validator->validate($usuario);
+
+        if (count($erros) > 0) {
+            throw new DataValidationException($erros);
+        }
+
+        $doctrine = $this->getEntityManager();
+        $doctrine->persist($usuario);
+        $doctrine->flush();
+
+        return true;
     }
-    */
+
+    /**
+     * @throws EntityNotFoundException
+     * @throws DataValidationException
+     */
+    public function atualizar(
+        int $id,
+        string $nome,
+        string $email
+    ) : bool {
+        $usuario = $this->find($id);
+
+        if (!$usuario) {
+            throw new EntityNotFoundException('Usuário não encontrado', 404);
+        }
+
+        $usuario
+            ->setNome($nome)
+            ->setEmail($email)
+            ->setUpdatedAt(new DateTime('now', new DateTimeZone('America/Manaus')));
+
+        $erros = $this->validator->validate($usuario);
+
+        if (count($erros) > 0) {
+            throw new DataValidationException($erros);
+        }
+
+        $doctrine = $this->getEntityManager();
+        $doctrine->flush();
+
+        return true;
+    }
+
+    /**
+     * @throws EntityNotFoundException
+     */
+    public function excluir(int $id) : bool
+    {
+        $usuario = $this->find($id);
+
+        if (!$usuario) {
+            throw new EntityNotFoundException('Usuário não encontrado', 404);
+        }
+
+        $doctrine = $this->getEntityManager();
+        $doctrine->remove($usuario);
+        $doctrine->flush();
+
+        return true;
+    }
 }

@@ -6,6 +6,8 @@ use App\Repository\UsuarioRepository;
 use Doctrine\ORM\Mapping as ORM;
 use InvalidArgumentException;
 use JsonSerializable;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -13,7 +15,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 /**
  * @ORM\Entity(repositoryClass=UsuarioRepository::class)
  */
-class Usuario implements JsonSerializable
+class Usuario implements JsonSerializable, UserInterface
 {
     /**
      * @ORM\Id
@@ -88,12 +90,8 @@ class Usuario implements JsonSerializable
         return $this;
     }
 
-    public function setSenha(string $senha, string $confirmarSenha): self
+    public function setSenha(string $senha): self
     {
-        if ($senha !== $confirmarSenha) {
-            throw new InvalidArgumentException('A senha deve ser igual a confirmação de senha');
-        }
-
         $this->senha = $senha;
 
         return $this;
@@ -132,5 +130,35 @@ class Usuario implements JsonSerializable
             'criado' => $this->getCreatedAt(),
             'atualizado' => $this->getUpdatedAt()
         ];
+    }
+
+    public function getRoles(): array
+    {
+        return [];
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->senha;
+    }
+
+    public function getSalt(): ?string
+    {
+        return null;
+    }
+
+    public function eraseCredentials()
+    {
+        return null;
+    }
+
+    public function getUsername(): ?string
+    {
+        return $this->getNome();
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->getEmail();
     }
 }

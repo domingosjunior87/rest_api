@@ -9,9 +9,9 @@
         "ext-iconv": "*",
         "ext-json": "*",
         "composer/package-versions-deprecated": "1.11.99.2",
-        "doctrine/annotations": "^1.13",
         "doctrine/doctrine-bundle": "^2.4",
         "doctrine/doctrine-migrations-bundle": "^3.1",
+        "doctrine/mongodb-odm-bundle": "^4.3",
         "doctrine/orm": "^2.9",
         "sensio/framework-extra-bundle": "^6.1",
         "symfony/apache-pack": "^1.0",
@@ -72,6 +72,9 @@
         }
     },
     "require-dev": {
-        "symfony/maker-bundle": "^1.33"
+        "doctrine/annotations": "^1.13",
+        "firebase/php-jwt": "^5.4",
+        "symfony/maker-bundle": "^1.33",
+        "symfony/security-bundle": "5.3.*"
     }
 }
