@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Exception\DataValidationException;
 use App\Repository\ApiTokenRepository;
 use App\Repository\UsuarioRepository;
 use Firebase\JWT\JWT;
@@ -43,5 +44,27 @@ class AuthController extends AbstractController
         $apiTokenRepository->salvar($usuario->getId(), $jwt);
 
         return $this->json(['token' => $jwt]);
+    }
+
+    /**
+     * @Route("/create_user", name="_create_user", methods={"POST"})
+     */
+    public function create(
+        Request $request,
+        UsuarioRepository $usuarioRepository
+    ) : JsonResponse {
+        $dados = $request->request->all();
+
+        try {
+            $usuarioRepository->cadastrar(
+                $dados['nome'],
+                $dados['senha'],
+                $dados['email']
+            );
+        } catch (DataValidationException $e) {
+            return $this->json(['mensagem' => $e->getMessage()], 400);
+        }
+
+        return $this->json(['cadastrado' => true]);
     }
 }
